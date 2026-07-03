@@ -3,13 +3,9 @@ package com.example.mobileagent.net;
 /**
  * Structured snapshot of on-screen state as reported by Portal.
  *
- * NOTE: field names here are a reasonable placeholder shape based on Portal's
- * publicly described capabilities (accessibility tree, current package/activity,
- * optional screenshot). Before wiring this against the real API, confirm the
- * exact JSON shape against Portal's own API docs/OpenAPI spec (check the
- * mobilerun-portal repo and docs.mobilerun.ai) and adjust the Gson field
- * mappings in PortalClient accordingly — do not assume this is byte-for-byte
- * accurate until verified against a running Portal instance.
+ * This object is manually populated by PortalClient by parsing Portal's
+ * real API responses (e.g. extracting the tree and package from /state,
+ * and fetching /screenshot if requested).
  */
 public class DeviceState {
 

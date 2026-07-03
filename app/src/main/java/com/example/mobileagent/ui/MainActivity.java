@@ -1,6 +1,9 @@
 package com.example.mobileagent.ui;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,12 +22,25 @@ import com.google.android.material.textfield.TextInputEditText;
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
+    
+    private final BroadcastReceiver logReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null && intent.hasExtra("log_line")) {
+                String line = intent.getStringExtra("log_line");
+                String current = binding.statusText.getText().toString();
+                binding.statusText.setText(line + "\n\n" + current);
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        setSupportActionBar(binding.toolbar);
 
         binding.runButton.setOnClickListener(v -> onRunClicked());
     }
@@ -34,11 +50,30 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         boolean portalOk = PortalClient.isPortalInstalled(this);
         binding.portalWarning.setVisibility(portalOk ? android.view.View.GONE : android.view.View.VISIBLE);
+        binding.portalWarning.setOnClickListener(v -> {
+            startActivity(new android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS));
+        });
 
         SecureKeyStore keyStore = new SecureKeyStore(this);
-        if (!keyStore.hasAnthropicKey()) {
-            binding.statusText.setText("No API key set. Open Settings to add your Anthropic key (BYOK).");
+        String selected = keyStore.getSelectedProvider();
+        if (!keyStore.hasKey(selected)) {
+            binding.statusText.setText("No API key set for " + selected + ". Open Settings to add your key.");
+        } else {
+            binding.statusText.setText("Ready to run on " + selected);
         }
+        
+        // Register receiver for logs
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(logReceiver, new IntentFilter("com.example.mobileagent.LOG"), Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(logReceiver, new IntentFilter("com.example.mobileagent.LOG"));
+        }
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(logReceiver);
     }
 
     private void onRunClicked() {
@@ -51,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         if (!PortalClient.isPortalInstalled(this)) {
-            binding.statusText.setText("Cannot start: Portal is not installed. See README.");
+            binding.statusText.setText("Cannot start: Accessibility Service is not enabled. Tap the warning banner to enable it.");
             return;
         }
 
@@ -59,8 +94,7 @@ public class MainActivity extends AppCompatActivity {
         serviceIntent.putExtra(AgentTaskService.EXTRA_TASK, task);
         startForegroundService(serviceIntent);
 
-        binding.statusText.setText("Task started — check the notification for live progress.\n"
-                + "(A full in-app step log/history view is a natural next feature to add here.)");
+        binding.statusText.setText("Task started — check below for live progress.\n");
     }
 
     @Override

@@ -13,8 +13,8 @@ import androidx.core.app.NotificationCompat;
 
 import com.example.mobileagent.MobileAgentApp;
 import com.example.mobileagent.R;
-import com.example.mobileagent.llm.ClaudeProvider;
 import com.example.mobileagent.llm.LlmProvider;
+import com.example.mobileagent.llm.LlmProviderFactory;
 import com.example.mobileagent.net.PortalClient;
 import com.example.mobileagent.ui.MainActivity;
 import com.example.mobileagent.util.SecureKeyStore;
@@ -71,29 +71,41 @@ public class AgentTaskService extends Service {
         // TODO: the local auth token should come from Portal's own pairing/setup flow,
         // not be hardcoded — wire this up once Portal's actual pairing mechanism is confirmed.
         PortalClient portalClient = new PortalClient(/* localAuthToken= */ "");
-        LlmProvider llmProvider = new ClaudeProvider(keyStore.getAnthropicKey());
+        LlmProvider llmProvider = LlmProviderFactory.getActiveProvider(this);
         agentLoop = new AgentLoop(portalClient, llmProvider);
 
         executor.execute(() -> agentLoop.run(task, new AgentLoop.StepListener() {
             @Override
             public void onStep(int stepNumber, Action action) {
-                updateNotification("Step " + stepNumber + ": " + action.getReasoning());
+                String log = "Step " + stepNumber + ": " + action.getType().name() + " -> " + action.getReasoning();
+                updateNotification(log);
+                broadcastLog(log);
             }
 
             @Override
             public void onComplete(List<Action> history) {
-                updateNotification("Task complete (" + history.size() + " actions).");
+                String log = "Task complete (" + history.size() + " actions).";
+                updateNotification(log);
+                broadcastLog(log);
                 stopSelf();
             }
 
             @Override
             public void onFailed(String reason, List<Action> history) {
-                updateNotification("Task stopped: " + reason);
+                String log = "Task stopped: " + reason;
+                updateNotification(log);
+                broadcastLog(log);
                 stopSelf();
             }
         }));
 
         return START_NOT_STICKY;
+    }
+
+    private void broadcastLog(String message) {
+        Intent intent = new Intent("com.example.mobileagent.LOG");
+        intent.putExtra("log_line", message);
+        sendBroadcast(intent);
     }
 
     @Override

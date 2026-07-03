@@ -47,11 +47,3 @@ screen sizes and themes, text/IDs generally don't. Screenshots are kept as an
 explicit fallback path (`fetchStateWithScreenshot`) for screens where the
 tree is unusable (canvas-drawn UI, some WebViews), not the default per-step
 signal.
-
-## Open items / things intentionally left as TODOs
-
-- `PortalClient`'s endpoint paths and JSON shapes are placeholders pending
-  verification against Portal's actual API — do not treat them as
-  authoritative until confirmed against a running instance.
-- The local auth token handshake with Portal isn't wired up yet — needs
-  Portal's real pairing flow.

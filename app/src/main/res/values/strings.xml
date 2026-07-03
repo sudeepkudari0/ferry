@@ -5,5 +5,6 @@
     <string name="run_task">Run task</string>
     <string name="anthropic_key_label">Anthropic API key</string>
     <string name="save_key">Save key</string>
-    <string name="portal_missing_warning">Portal is not installed. This app requires it to read the screen and perform actions. See the README for setup instructions.</string>
+    <string name="portal_missing_warning">Ferry requires Accessibility Service to read the screen and perform actions. Tap here to enable it.</string>
+    <string name="accessibility_service_description">Enables Ferry to read screen content and perform automated actions.</string>
 </resources>
