@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Mobile Agent</string>
+    <string name="settings_title">Settings</string>
+    <string name="task_hint">e.g. Summarize my last 5 unread emails</string>
+    <string name="run_task">Run task</string>
+    <string name="anthropic_key_label">Anthropic API key</string>
+    <string name="save_key">Save key</string>
+    <string name="portal_missing_warning">Portal is not installed. This app requires it to read the screen and perform actions. See the README for setup instructions.</string>
+</resources>
