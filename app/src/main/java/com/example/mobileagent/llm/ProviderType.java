@@ -4,5 +4,6 @@ public enum ProviderType {
     ANTHROPIC,
     OPENAI,
     GROQ,
-    GEMINI
+    GEMINI,
+    LOCAL
 }

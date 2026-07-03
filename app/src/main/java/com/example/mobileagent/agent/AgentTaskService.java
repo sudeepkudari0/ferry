@@ -58,8 +58,11 @@ public class AgentTaskService extends Service {
         SecureKeyStore keyStore = new SecureKeyStore(this);
         String selectedProvider = keyStore.getSelectedProvider();
         if (!keyStore.hasKey(selectedProvider)) {
-            updateNotification("No API key set for " + selectedProvider + " — add one in Settings.");
-            broadcastLog("No API key set for " + selectedProvider + " — add one in Settings.");
+            String msg = "LOCAL".equals(selectedProvider)
+                    ? "Local LLM server not configured — set it up in Settings."
+                    : "No API key set for " + selectedProvider + " — add one in Settings.";
+            updateNotification(msg);
+            broadcastLog(msg);
             stopSelf();
             return START_NOT_STICKY;
         }

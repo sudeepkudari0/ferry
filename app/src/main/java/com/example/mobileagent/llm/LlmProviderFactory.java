@@ -31,11 +31,21 @@ public class LlmProviderFactory {
                 String model = savedModel != null ? savedModel : "gemini-1.5-pro-latest";
                 return new GeminiProvider(keyStore.getKey("GEMINI"), model);
             }
+            case "LOCAL": {
+                String baseUrl = keyStore.getLocalServerUrl();
+                String model = savedModel != null ? savedModel : "default";
+                return new LocalLlmProvider(baseUrl, model);
+            }
             case "ANTHROPIC":
             default: {
                 String model = savedModel != null ? savedModel : "claude-sonnet-4-20250514";
                 return new ClaudeProvider(keyStore.getKey("ANTHROPIC"), model);
             }
         }
+    }
+
+    /** Check if the selected provider requires an API key. */
+    public static boolean requiresApiKey(String provider) {
+        return !"LOCAL".equals(provider);
     }
 }

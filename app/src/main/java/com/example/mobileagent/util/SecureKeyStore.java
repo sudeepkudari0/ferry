@@ -19,6 +19,11 @@ public class SecureKeyStore {
     
     private static final String KEY_SELECTED_PROVIDER = "selected_provider";
     private static final String KEY_MODEL_PREFIX = "selected_model_";
+    
+    // Local LLM settings
+    private static final String KEY_LOCAL_SERVER_URL = "local_server_url";
+    private static final String KEY_LOCAL_SELECTED_MODEL_ID = "local_selected_model_id";
+    private static final String DEFAULT_LOCAL_SERVER_URL = "http://localhost:8080";
 
     private final SharedPreferences prefs;
 
@@ -68,6 +73,8 @@ public class SecureKeyStore {
     }
 
     public boolean hasKey(String provider) {
+        // LOCAL provider doesn't need an API key
+        if ("LOCAL".equals(provider)) return true;
         String key = getKey(provider);
         return key != null && !key.isEmpty();
     }
@@ -78,6 +85,24 @@ public class SecureKeyStore {
 
     public String getSelectedModel(String provider) {
         return prefs.getString(KEY_MODEL_PREFIX + provider, null);
+    }
+
+    // ── Local LLM settings ──────────────────────────────────────
+
+    public void setLocalServerUrl(String url) {
+        prefs.edit().putString(KEY_LOCAL_SERVER_URL, url).apply();
+    }
+
+    public String getLocalServerUrl() {
+        return prefs.getString(KEY_LOCAL_SERVER_URL, DEFAULT_LOCAL_SERVER_URL);
+    }
+
+    public void setLocalSelectedModelId(String modelId) {
+        prefs.edit().putString(KEY_LOCAL_SELECTED_MODEL_ID, modelId).apply();
+    }
+
+    public String getLocalSelectedModelId() {
+        return prefs.getString(KEY_LOCAL_SELECTED_MODEL_ID, null);
     }
 
     // Legacy support methods during migration

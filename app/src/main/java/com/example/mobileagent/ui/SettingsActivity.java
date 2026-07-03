@@ -51,6 +51,7 @@ public class SettingsActivity extends AppCompatActivity {
         providers.add(ProviderType.OPENAI.name());
         providers.add(ProviderType.GROQ.name());
         providers.add(ProviderType.GEMINI.name());
+        providers.add(ProviderType.LOCAL.name());
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, providers);
         binding.providerDropdown.setAdapter(adapter);
@@ -71,18 +72,29 @@ public class SettingsActivity extends AppCompatActivity {
             loadSavedModel(currentSelectedProvider);
         });
 
-        binding.verifyKeyButton.setOnClickListener(v -> verifyApiKey());
+        binding.verifyKeyButton.setOnClickListener(v -> {
+            if ("LOCAL".equals(currentSelectedProvider)) {
+                startActivity(new android.content.Intent(this, LocalModelsActivity.class));
+            } else {
+                verifyApiKey();
+            }
+        });
 
         binding.modelDropdown.setOnItemClickListener((parent, view, position, id) -> {
             currentSelectedModel = (String) parent.getItemAtPosition(position);
         });
 
         binding.saveKeyButton.setOnClickListener(v -> {
+            keyStore.setSelectedProvider(currentSelectedProvider);
+            if ("LOCAL".equals(currentSelectedProvider)) {
+                Toast.makeText(this, "Switched to LOCAL provider", Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
+
             String key = binding.apiKeyInput.getText() != null
                     ? binding.apiKeyInput.getText().toString().trim()
                     : "";
-            
-            keyStore.setSelectedProvider(currentSelectedProvider);
             
             // Save model selection if one was chosen
             if (currentSelectedModel != null && !currentSelectedModel.isEmpty()) {
@@ -107,10 +119,19 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void updateKeyHint(String provider) {
-        if (keyStore.hasKey(provider)) {
-            binding.apiKeyInputLayout.setHint("Key saved for " + provider + " — enter a new one to replace");
+        if ("LOCAL".equals(provider)) {
+            binding.apiKeyInputLayout.setVisibility(View.GONE);
+            binding.verifyKeyButton.setText("Configure & Download Local Models");
+            binding.saveKeyButton.setText("Activate Local LLM");
         } else {
-            binding.apiKeyInputLayout.setHint(provider + " API Key");
+            binding.apiKeyInputLayout.setVisibility(View.VISIBLE);
+            binding.verifyKeyButton.setText(getString(com.example.mobileagent.R.string.verify_key));
+            binding.saveKeyButton.setText(getString(com.example.mobileagent.R.string.save_key));
+            if (keyStore.hasKey(provider)) {
+                binding.apiKeyInputLayout.setHint("Key saved for " + provider + " — enter a new one to replace");
+            } else {
+                binding.apiKeyInputLayout.setHint(provider + " API Key");
+            }
         }
     }
 
