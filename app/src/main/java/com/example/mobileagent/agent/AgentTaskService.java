@@ -56,8 +56,10 @@ public class AgentTaskService extends Service {
         }
 
         SecureKeyStore keyStore = new SecureKeyStore(this);
-        if (!keyStore.hasAnthropicKey()) {
-            updateNotification("No API key set — add one in Settings.");
+        String selectedProvider = keyStore.getSelectedProvider();
+        if (!keyStore.hasKey(selectedProvider)) {
+            updateNotification("No API key set for " + selectedProvider + " — add one in Settings.");
+            broadcastLog("No API key set for " + selectedProvider + " — add one in Settings.");
             stopSelf();
             return START_NOT_STICKY;
         }

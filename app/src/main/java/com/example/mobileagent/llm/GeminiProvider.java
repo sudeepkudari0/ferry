@@ -26,8 +26,12 @@ public class GeminiProvider implements LlmProvider {
     private final OkHttpClient httpClient;
 
     public GeminiProvider(String apiKey) {
+        this(apiKey, DEFAULT_MODEL);
+    }
+
+    public GeminiProvider(String apiKey, String model) {
         this.apiKey = apiKey;
-        this.model = DEFAULT_MODEL;
+        this.model = model;
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)

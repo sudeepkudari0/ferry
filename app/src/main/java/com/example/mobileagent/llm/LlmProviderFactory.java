@@ -8,25 +8,34 @@ public class LlmProviderFactory {
     public static LlmProvider getActiveProvider(Context context) {
         SecureKeyStore keyStore = new SecureKeyStore(context);
         String selected = keyStore.getSelectedProvider();
+        String savedModel = keyStore.getSelectedModel(selected);
         
         switch (selected) {
-            case "OPENAI":
+            case "OPENAI": {
+                String model = savedModel != null ? savedModel : "gpt-4o";
                 return new OpenAICompatibleProvider(
                         "https://api.openai.com/v1/chat/completions",
                         keyStore.getKey("OPENAI"),
-                        "gpt-4o"
+                        model
                 );
-            case "GROQ":
+            }
+            case "GROQ": {
+                String model = savedModel != null ? savedModel : "llama-3.3-70b-versatile";
                 return new OpenAICompatibleProvider(
                         "https://api.groq.com/openai/v1/chat/completions",
                         keyStore.getKey("GROQ"),
-                        "openai/gpt-oss-120b"
+                        model
                 );
-            case "GEMINI":
-                return new GeminiProvider(keyStore.getKey("GEMINI"));
+            }
+            case "GEMINI": {
+                String model = savedModel != null ? savedModel : "gemini-1.5-pro-latest";
+                return new GeminiProvider(keyStore.getKey("GEMINI"), model);
+            }
             case "ANTHROPIC":
-            default:
-                return new ClaudeProvider(keyStore.getKey("ANTHROPIC"));
+            default: {
+                String model = savedModel != null ? savedModel : "claude-sonnet-4-20250514";
+                return new ClaudeProvider(keyStore.getKey("ANTHROPIC"), model);
+            }
         }
     }
 }

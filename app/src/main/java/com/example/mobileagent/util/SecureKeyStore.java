@@ -18,6 +18,7 @@ public class SecureKeyStore {
     private static final String KEY_GEMINI = "gemini_api_key";
     
     private static final String KEY_SELECTED_PROVIDER = "selected_provider";
+    private static final String KEY_MODEL_PREFIX = "selected_model_";
 
     private final SharedPreferences prefs;
 
@@ -69,6 +70,14 @@ public class SecureKeyStore {
     public boolean hasKey(String provider) {
         String key = getKey(provider);
         return key != null && !key.isEmpty();
+    }
+
+    public void setSelectedModel(String provider, String model) {
+        prefs.edit().putString(KEY_MODEL_PREFIX + provider, model).apply();
+    }
+
+    public String getSelectedModel(String provider) {
+        return prefs.getString(KEY_MODEL_PREFIX + provider, null);
     }
 
     // Legacy support methods during migration
