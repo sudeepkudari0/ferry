@@ -7,30 +7,39 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.appcompat.widget.Toolbar;
 
 import com.sudeepkudari.ferry.R;
 import com.sudeepkudari.ferry.agent.AgentTaskService;
 import com.sudeepkudari.ferry.databinding.ActivityMainBinding;
 import com.sudeepkudari.ferry.net.PortalClient;
+import com.sudeepkudari.ferry.net.PortalClient;
 import com.sudeepkudari.ferry.util.SecureKeyStore;
+import com.sudeepkudari.ferry.data.AppDatabase;
+import com.sudeepkudari.ferry.data.TaskDao;
+import com.sudeepkudari.ferry.data.TaskEntity;
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
+    private TaskHistoryAdapter historyAdapter;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     
     private final BroadcastReceiver logReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent != null && intent.hasExtra("log_line")) {
-                String line = intent.getStringExtra("log_line");
-                String current = binding.statusText.getText().toString();
-                binding.statusText.setText(line + "\n\n" + current);
-            }
+            // Refresh history when an update comes in
+            loadHistory();
         }
     };
 
@@ -41,6 +50,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.toolbar);
+
+        historyAdapter = new TaskHistoryAdapter();
+        binding.taskHistoryRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        binding.taskHistoryRecyclerView.setAdapter(historyAdapter);
 
         binding.runButton.setOnClickListener(v -> onRunClicked());
     }
@@ -58,11 +71,11 @@ public class MainActivity extends AppCompatActivity {
         String selected = keyStore.getSelectedProvider();
         if (!keyStore.hasKey(selected)) {
             binding.statusLabel.setText("No API key for " + selected);
-            binding.statusText.setText("Open Settings to add your key.");
         } else {
             binding.statusLabel.setText("Ready · " + selected);
-            binding.statusText.setText("");
         }
+        
+        loadHistory();
         
         // Register receiver for logs
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -88,12 +101,12 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         if (!PortalClient.isPortalInstalled(this)) {
-            binding.statusText.setText("Cannot start: Accessibility Service is not enabled. Tap the warning banner to enable it.");
+            Toast.makeText(this, "Cannot start: Accessibility Service is not enabled.", Toast.LENGTH_LONG).show();
             return;
         }
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !android.provider.Settings.canDrawOverlays(this)) {
-            binding.statusText.setText("Cannot start: Please grant the 'Draw over other apps' permission so the agent can show the floating status window.");
+            Toast.makeText(this, "Cannot start: Please grant the 'Draw over other apps' permission.", Toast.LENGTH_LONG).show();
             startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:" + getPackageName())));
             return;
         }
@@ -101,8 +114,17 @@ public class MainActivity extends AppCompatActivity {
         Intent serviceIntent = new Intent(this, AgentTaskService.class);
         serviceIntent.putExtra(AgentTaskService.EXTRA_TASK, task);
         startForegroundService(serviceIntent);
+        
+        binding.taskInput.setText("");
+        Toast.makeText(this, "Task started", Toast.LENGTH_SHORT).show();
+    }
 
-        binding.statusText.setText("Task started — check below for live progress.\n");
+    private void loadHistory() {
+        executor.execute(() -> {
+            TaskDao dao = AppDatabase.getDatabase(this).taskDao();
+            List<TaskEntity> tasks = dao.getAllTasks();
+            runOnUiThread(() -> historyAdapter.setTasks(tasks));
+        });
     }
 
     @Override

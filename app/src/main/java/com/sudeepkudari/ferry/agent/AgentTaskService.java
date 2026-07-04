@@ -19,6 +19,11 @@ import com.sudeepkudari.ferry.net.PortalClient;
 import com.sudeepkudari.ferry.ui.MainActivity;
 import com.sudeepkudari.ferry.ui.FloatingOverlayManager;
 import com.sudeepkudari.ferry.util.SecureKeyStore;
+import com.sudeepkudari.ferry.data.AppDatabase;
+import com.sudeepkudari.ferry.data.StepEntity;
+import com.sudeepkudari.ferry.data.TaskDao;
+import com.sudeepkudari.ferry.data.TaskEntity;
+import java.util.UUID;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -94,30 +99,45 @@ public class AgentTaskService extends Service {
         LlmProvider llmProvider = LlmProviderFactory.getActiveProvider(this);
         agentLoop = new AgentLoop(portalClient, llmProvider);
 
-        executor.execute(() -> agentLoop.run(task, new AgentLoop.StepListener() {
-            @Override
-            public void onStep(int stepNumber, Action action) {
-                String log = "Step " + stepNumber + ": " + action.getType().name() + " -> " + action.getReasoning();
-                updateNotification(log);
-                broadcastLog(log);
-            }
+        AppDatabase db = AppDatabase.getDatabase(this);
+        TaskDao dao = db.taskDao();
+        String taskId = UUID.randomUUID().toString();
 
-            @Override
-            public void onComplete(List<Action> history) {
-                String log = "Task complete (" + history.size() + " actions).";
-                updateNotification(log);
-                broadcastLog(log);
-                stopSelf();
-            }
+        executor.execute(() -> {
+            dao.insertTask(new TaskEntity(taskId, task, System.currentTimeMillis(), "RUNNING"));
+            
+            agentLoop.run(task, new AgentLoop.StepListener() {
+                @Override
+                public void onStep(int stepNumber, Action action) {
+                    String log = "Step " + stepNumber + ": " + action.getType().name() + " -> " + action.getReasoning();
+                    updateNotification(log);
+                    broadcastLog(log);
+                    
+                    String summary = action.getType().name();
+                    dao.insertStep(new StepEntity(taskId, stepNumber, action.getType().name(), action.getReasoning(), summary, System.currentTimeMillis()));
+                }
 
-            @Override
-            public void onFailed(String reason, List<Action> history) {
-                String log = "Task stopped: " + reason;
-                updateNotification(log);
-                broadcastLog(log);
-                stopSelf();
-            }
-        }));
+                @Override
+                public void onComplete(List<Action> history) {
+                    String log = "Task complete (" + history.size() + " actions).";
+                    updateNotification(log);
+                    broadcastLog(log);
+                    
+                    dao.updateTaskStatus(taskId, "COMPLETED", System.currentTimeMillis());
+                    stopSelf();
+                }
+
+                @Override
+                public void onFailed(String reason, List<Action> history) {
+                    String log = "Task stopped: " + reason;
+                    updateNotification(log);
+                    broadcastLog(log);
+                    
+                    dao.updateTaskStatus(taskId, "FAILED", System.currentTimeMillis());
+                    stopSelf();
+                }
+            });
+        });
 
         return START_NOT_STICKY;
     }

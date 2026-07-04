@@ -171,15 +171,13 @@
                 android:textStyle="bold"
                 android:letterSpacing="0.05" />
 
-            <!-- Log output -->
-            <TextView
-                android:id="@+id/statusText"
+            <!-- Log output (Replaced by History RecyclerView) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/taskHistoryRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="monospace"
-                android:lineSpacingMultiplier="1.4"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="24dp" />
 
         </LinearLayout>
 
