@@ -115,6 +115,25 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Quick Actions -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:text="Quick Actions"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/useCasesRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal" />
+
             <!-- Task input -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/taskInputLayout"

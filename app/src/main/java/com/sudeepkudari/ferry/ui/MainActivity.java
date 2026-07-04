@@ -28,14 +28,20 @@ import com.sudeepkudari.ferry.data.TaskDao;
 import com.sudeepkudari.ferry.data.TaskEntity;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import com.sudeepkudari.ferry.model.UseCase;
+import com.sudeepkudari.ferry.model.UseCaseParameter;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private TaskHistoryAdapter historyAdapter;
+    private UseCaseAdapter useCaseAdapter;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private ActivityResultLauncher<Intent> speechRecognizerLauncher;
     
@@ -58,6 +64,14 @@ public class MainActivity extends AppCompatActivity {
         historyAdapter = new TaskHistoryAdapter();
         binding.taskHistoryRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.taskHistoryRecyclerView.setAdapter(historyAdapter);
+
+        useCaseAdapter = new UseCaseAdapter(useCase -> {
+            UseCaseBottomSheetFragment.newInstance(useCase)
+                    .show(getSupportFragmentManager(), "useCaseSheet");
+        });
+        binding.useCasesRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        binding.useCasesRecyclerView.setAdapter(useCaseAdapter);
+        setupUseCases();
 
         binding.runButton.setOnClickListener(v -> onRunClicked());
         
@@ -152,6 +166,63 @@ public class MainActivity extends AppCompatActivity {
             List<TaskEntity> tasks = dao.getAllTasks();
             runOnUiThread(() -> historyAdapter.setTasks(tasks));
         });
+    }
+
+    private void setupUseCases() {
+        List<UseCase> useCases = new ArrayList<>();
+
+        useCases.add(new UseCase(
+                "linkedin_jobs",
+                "LinkedIn Jobs",
+                "Auto-apply for jobs",
+                android.R.drawable.ic_menu_myplaces,
+                Arrays.asList(
+                        new UseCaseParameter("role", "Job Role (e.g. Android Developer)", UseCaseParameter.Type.TEXT, null),
+                        new UseCaseParameter("location", "Location (e.g. Remote, NY)", UseCaseParameter.Type.TEXT, null),
+                        new UseCaseParameter("apply_type", "Application Type", UseCaseParameter.Type.RADIO, Arrays.asList("Easy Apply", "External Site"))
+                ),
+                "Open LinkedIn app, search for {role} jobs in {location}, and start applying using {apply_type}."
+        ));
+
+        useCases.add(new UseCase(
+                "naukri_jobs",
+                "Naukri Jobs",
+                "Apply on Naukri",
+                android.R.drawable.ic_menu_recent_history,
+                Arrays.asList(
+                        new UseCaseParameter("role", "Job Role", UseCaseParameter.Type.TEXT, null),
+                        new UseCaseParameter("experience", "Experience (Years)", UseCaseParameter.Type.TEXT, null)
+                ),
+                "Open Naukri app, search for {role} jobs for {experience} years experience, and apply."
+        ));
+
+        useCases.add(new UseCase(
+                "messaging",
+                "Send Message",
+                "WhatsApp / SMS",
+                android.R.drawable.ic_dialog_email,
+                Arrays.asList(
+                        new UseCaseParameter("app", "App", UseCaseParameter.Type.DROPDOWN, Arrays.asList("WhatsApp", "SMS")),
+                        new UseCaseParameter("recipient", "Recipient Name", UseCaseParameter.Type.TEXT, null),
+                        new UseCaseParameter("message", "Message", UseCaseParameter.Type.MULTILINE_TEXT, null)
+                ),
+                "Open {app}, find {recipient}, and send this message: {message}"
+        ));
+
+        useCases.add(new UseCase(
+                "gmail",
+                "Send Email",
+                "Compose a Gmail",
+                android.R.drawable.ic_dialog_email,
+                Arrays.asList(
+                        new UseCaseParameter("to", "To", UseCaseParameter.Type.TEXT, null),
+                        new UseCaseParameter("subject", "Subject", UseCaseParameter.Type.TEXT, null),
+                        new UseCaseParameter("body", "Body", UseCaseParameter.Type.MULTILINE_TEXT, null)
+                ),
+                "Open Gmail, compose an email to {to} with subject '{subject}' and body: '{body}', then send."
+        ));
+
+        useCaseAdapter.setUseCases(useCases);
     }
 
     @Override
