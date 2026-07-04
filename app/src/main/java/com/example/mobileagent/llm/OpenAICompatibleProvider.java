@@ -53,7 +53,7 @@ public class OpenAICompatibleProvider implements LlmProvider {
         try (Response response = httpClient.newCall(request).execute()) {
             if (!response.isSuccessful() || response.body() == null) {
                 String errBody = response.body() != null ? response.body().string() : "";
-                throw new IOException("OpenAI/Groq API call failed: HTTP " + response.code() + " " + errBody);
+                throw new IOException("OpenAI/Groq/Mistral API call failed: HTTP " + response.code() + " " + errBody);
             }
             JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
             return parseActionFromResponse(json);
@@ -118,7 +118,7 @@ public class OpenAICompatibleProvider implements LlmProvider {
         properties.add("text", simpleStringProp("Text to type, required for TYPE_TEXT."));
         properties.add("x", simpleIntProp("X coordinate, required for TAP_XY and SWIPE."));
         properties.add("y", simpleIntProp("Y coordinate, required for TAP_XY and SWIPE."));
-        properties.add("target", simpleStringProp("Package name or deep link, required for LAUNCH_APP."));
+        properties.add("target", simpleStringProp("Android package name or deep link URI, required for LAUNCH_APP. Use the real package name, e.g. 'com.android.chrome' for Chrome, 'com.google.android.youtube' for YouTube, 'com.whatsapp' for WhatsApp."));
         properties.add("reasoning", simpleStringProp("One sentence explaining why this action was chosen."));
 
         schema.add("properties", properties);

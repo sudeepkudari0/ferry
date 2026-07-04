@@ -92,12 +92,61 @@ public class PortalClient implements PortalApi {
                 break;
             case LAUNCH_APP:
                 if (action.getPackageOrDeepLink() != null) {
-                    // Use intent to launch app natively
-                    android.content.Intent launchIntent = service.getPackageManager().getLaunchIntentForPackage(action.getPackageOrDeepLink());
-                    if (launchIntent != null) {
-                        launchIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
-                        service.startActivity(launchIntent);
+                    String requestedPkg = action.getPackageOrDeepLink().trim();
+                    String requestedLower = requestedPkg.toLowerCase();
+                    
+                    // If they typed something like "com.andoird.chrome", extract "chrome" for fuzzy fallback
+                    String fallbackSearch = requestedLower;
+                    if (requestedLower.contains(".")) {
+                        String[] parts = requestedLower.split("\\.");
+                        fallbackSearch = parts[parts.length - 1]; // e.g. "chrome"
                     }
+
+                    java.util.List<String> candidates = new java.util.ArrayList<>();
+                    candidates.add(requestedPkg);
+
+                    // Fuzzy match against all installed packages
+                    android.content.pm.PackageManager pm = service.getPackageManager();
+                    java.util.List<android.content.pm.ApplicationInfo> apps = pm.getInstalledApplications(0);
+                    
+                    for (android.content.pm.ApplicationInfo app : apps) {
+                        String pkgName = app.packageName;
+                        // Skip if it doesn't have a launch intent (system background apps)
+                        if (pm.getLaunchIntentForPackage(pkgName) == null) continue;
+                        
+                        CharSequence labelSeq = pm.getApplicationLabel(app);
+                        String label = labelSeq != null ? labelSeq.toString().toLowerCase() : "";
+                        
+                        // Exact or partial match on label (e.g. "YouTube") or package name
+                        if (label.contains(requestedLower) || pkgName.toLowerCase().contains(requestedLower)
+                                || label.contains(fallbackSearch) || pkgName.toLowerCase().contains(fallbackSearch)) {
+                            if (!candidates.contains(pkgName)) {
+                                candidates.add(pkgName);
+                            }
+                        }
+                    }
+
+                    boolean launched = false;
+                    for (String pkg : candidates) {
+                        android.content.Intent launchIntent = pm.getLaunchIntentForPackage(pkg);
+                        if (launchIntent != null) {
+                            launchIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                            service.startActivity(launchIntent);
+                            Log.d(TAG, "Launched package: " + pkg
+                                    + (pkg.equals(requestedPkg) ? "" : " (fuzzy match from '" + requestedPkg + "')"));
+                            launched = true;
+                            break;
+                        } else {
+                            Log.w(TAG, "getLaunchIntentForPackage returned null for: " + pkg);
+                        }
+                    }
+
+                    if (!launched) {
+                        throw new IOException("LAUNCH_APP failed: no launchable package found for '"
+                                + requestedPkg + "'. Tried fuzzy matching but found no installed apps.");
+                    }
+                } else {
+                    throw new IOException("LAUNCH_APP action missing 'target' (package name or deep link).");
                 }
                 break;
             default:

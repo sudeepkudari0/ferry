@@ -51,6 +51,7 @@ public class SettingsActivity extends AppCompatActivity {
         providers.add(ProviderType.OPENAI.name());
         providers.add(ProviderType.GROQ.name());
         providers.add(ProviderType.GEMINI.name());
+        providers.add(ProviderType.MISTRAL.name());
         providers.add(ProviderType.LOCAL.name());
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, providers);
@@ -219,6 +220,8 @@ public class SettingsActivity extends AppCompatActivity {
                     return verifyAndFetchModels(client, "https://api.openai.com/v1/models", key, "OpenAI");
                 case "GROQ":
                     return verifyAndFetchModels(client, "https://api.groq.com/openai/v1/models", key, "Groq");
+                case "MISTRAL":
+                    return verifyAndFetchModels(client, "https://api.mistral.ai/v1/models", key, "Mistral");
                 case "GEMINI":
                     return verifyAndFetchGeminiModels(client, key);
                 case "ANTHROPIC":

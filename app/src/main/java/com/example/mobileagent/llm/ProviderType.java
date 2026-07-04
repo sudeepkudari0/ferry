@@ -5,5 +5,6 @@ public enum ProviderType {
     OPENAI,
     GROQ,
     GEMINI,
+    MISTRAL,
     LOCAL
 }

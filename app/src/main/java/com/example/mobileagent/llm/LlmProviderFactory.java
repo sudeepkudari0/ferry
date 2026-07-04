@@ -31,6 +31,14 @@ public class LlmProviderFactory {
                 String model = savedModel != null ? savedModel : "gemini-1.5-pro-latest";
                 return new GeminiProvider(keyStore.getKey("GEMINI"), model);
             }
+            case "MISTRAL": {
+                String model = savedModel != null ? savedModel : "mistral-large-latest";
+                return new OpenAICompatibleProvider(
+                        "https://api.mistral.ai/v1/chat/completions",
+                        keyStore.getKey("MISTRAL"),
+                        model
+                );
+            }
             case "LOCAL": {
                 String baseUrl = keyStore.getLocalServerUrl();
                 String model = savedModel != null ? savedModel : "default";

@@ -17,6 +17,7 @@ import com.example.mobileagent.llm.LlmProvider;
 import com.example.mobileagent.llm.LlmProviderFactory;
 import com.example.mobileagent.net.PortalClient;
 import com.example.mobileagent.ui.MainActivity;
+import com.example.mobileagent.ui.FloatingOverlayManager;
 import com.example.mobileagent.util.SecureKeyStore;
 
 import java.util.List;
@@ -38,6 +39,7 @@ public class AgentTaskService extends Service {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private AgentLoop agentLoop;
+    private FloatingOverlayManager overlayManager;
 
     @Nullable
     @Override
@@ -53,6 +55,19 @@ public class AgentTaskService extends Service {
         if (task == null || task.isEmpty()) {
             stopSelf();
             return START_NOT_STICKY;
+        }
+
+        // Initialize and show floating overlay if we have permission
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || android.provider.Settings.canDrawOverlays(this)) {
+            // Need to create overlay on main thread
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                overlayManager = new FloatingOverlayManager(this, () -> {
+                    if (agentLoop != null) agentLoop.cancel();
+                    stopSelf();
+                });
+                overlayManager.show();
+                overlayManager.appendLog("Task: " + task);
+            });
         }
 
         SecureKeyStore keyStore = new SecureKeyStore(this);
@@ -111,6 +126,10 @@ public class AgentTaskService extends Service {
         Intent intent = new Intent("com.example.mobileagent.LOG");
         intent.putExtra("log_line", message);
         sendBroadcast(intent);
+        
+        if (overlayManager != null) {
+            overlayManager.appendLog(message);
+        }
     }
 
     @Override
@@ -119,6 +138,9 @@ public class AgentTaskService extends Service {
             agentLoop.cancel();
         }
         executor.shutdownNow();
+        if (overlayManager != null) {
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> overlayManager.destroy());
+        }
         super.onDestroy();
     }
 

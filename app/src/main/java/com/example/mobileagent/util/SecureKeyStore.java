@@ -16,6 +16,7 @@ public class SecureKeyStore {
     private static final String KEY_OPENAI = "openai_api_key";
     private static final String KEY_GROQ = "groq_api_key";
     private static final String KEY_GEMINI = "gemini_api_key";
+    private static final String KEY_MISTRAL = "mistral_api_key";
     
     private static final String KEY_SELECTED_PROVIDER = "selected_provider";
     private static final String KEY_MODEL_PREFIX = "selected_model_";
@@ -59,6 +60,7 @@ public class SecureKeyStore {
             case "OPENAI": prefs.edit().putString(KEY_OPENAI, key).apply(); break;
             case "GROQ": prefs.edit().putString(KEY_GROQ, key).apply(); break;
             case "GEMINI": prefs.edit().putString(KEY_GEMINI, key).apply(); break;
+            case "MISTRAL": prefs.edit().putString(KEY_MISTRAL, key).apply(); break;
         }
     }
 
@@ -68,6 +70,7 @@ public class SecureKeyStore {
             case "OPENAI": return prefs.getString(KEY_OPENAI, null);
             case "GROQ": return prefs.getString(KEY_GROQ, null);
             case "GEMINI": return prefs.getString(KEY_GEMINI, null);
+            case "MISTRAL": return prefs.getString(KEY_MISTRAL, null);
             default: return null;
         }
     }

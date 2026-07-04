@@ -90,6 +90,12 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !android.provider.Settings.canDrawOverlays(this)) {
+            binding.statusText.setText("Cannot start: Please grant the 'Draw over other apps' permission so the agent can show the floating status window.");
+            startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:" + getPackageName())));
+            return;
+        }
+
         Intent serviceIntent = new Intent(this, AgentTaskService.class);
         serviceIntent.putExtra(AgentTaskService.EXTRA_TASK, task);
         startForegroundService(serviceIntent);
