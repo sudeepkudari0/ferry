@@ -59,6 +59,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         currentSelectedProvider = keyStore.getSelectedProvider();
         binding.providerDropdown.setText(currentSelectedProvider, false);
+        
+        binding.maxStepsInput.setText(String.valueOf(keyStore.getMaxSteps()));
 
         updateKeyHint(currentSelectedProvider);
         loadSavedModel(currentSelectedProvider);
@@ -100,6 +102,15 @@ public class SettingsActivity extends AppCompatActivity {
             // Save model selection if one was chosen
             if (currentSelectedModel != null && !currentSelectedModel.isEmpty()) {
                 keyStore.setSelectedModel(currentSelectedProvider, currentSelectedModel);
+            }
+            
+            try {
+                int maxSteps = Integer.parseInt(binding.maxStepsInput.getText().toString());
+                if (maxSteps > 0 && maxSteps <= 100) {
+                    keyStore.setMaxSteps(maxSteps);
+                }
+            } catch (NumberFormatException e) {
+                // Ignore, keep old value
             }
             
             if (!key.isEmpty()) {

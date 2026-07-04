@@ -56,8 +56,9 @@
 
             <ImageButton
                 android:id="@+id/btnStop"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
                 android:background="?selectableItemBackgroundBorderless"
                 android:contentDescription="Stop Agent"
                 android:src="@android:drawable/ic_delete"

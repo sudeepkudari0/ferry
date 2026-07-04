@@ -25,6 +25,9 @@ public class SecureKeyStore {
     private static final String KEY_LOCAL_SERVER_URL = "local_server_url";
     private static final String KEY_LOCAL_SELECTED_MODEL_ID = "local_selected_model_id";
     private static final String DEFAULT_LOCAL_SERVER_URL = "http://localhost:8080";
+    
+    private static final String KEY_MAX_STEPS = "max_steps";
+    private static final int DEFAULT_MAX_STEPS = 25;
 
     private final SharedPreferences prefs;
 
@@ -106,6 +109,16 @@ public class SecureKeyStore {
 
     public String getLocalSelectedModelId() {
         return prefs.getString(KEY_LOCAL_SELECTED_MODEL_ID, null);
+    }
+
+    // ── Global Agent Settings ──────────────────────────────────────
+    
+    public void setMaxSteps(int maxSteps) {
+        prefs.edit().putInt(KEY_MAX_STEPS, maxSteps).apply();
+    }
+    
+    public int getMaxSteps() {
+        return prefs.getInt(KEY_MAX_STEPS, DEFAULT_MAX_STEPS);
     }
 
     // Legacy support methods during migration

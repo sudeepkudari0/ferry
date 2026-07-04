@@ -18,7 +18,7 @@ import java.util.List;
 public class AgentLoop {
 
     /** Safety ceiling — prevents a confused agent from looping forever and burning API cost. */
-    private static final int MAX_STEPS = 25;
+    private final int maxSteps;
 
     public interface StepListener {
         void onStep(int stepNumber, Action action);
@@ -30,9 +30,10 @@ public class AgentLoop {
     private final LlmProvider llmProvider;
     private volatile boolean cancelled = false;
 
-    public AgentLoop(PortalApi portalClient, LlmProvider llmProvider) {
+    public AgentLoop(PortalApi portalClient, LlmProvider llmProvider, int maxSteps) {
         this.portalClient = portalClient;
         this.llmProvider = llmProvider;
+        this.maxSteps = maxSteps;
     }
 
     /** Signals the loop to stop before its next step. Safe to call from another thread. */
@@ -47,7 +48,7 @@ public class AgentLoop {
     public void run(String task, StepListener listener) {
         List<Action> history = new ArrayList<>();
 
-        for (int step = 1; step <= MAX_STEPS; step++) {
+        for (int step = 1; step <= maxSteps; step++) {
             if (cancelled) {
                 listener.onFailed("Cancelled by user", history);
                 return;
@@ -89,6 +90,6 @@ public class AgentLoop {
             listener.onStep(step, action);
         }
 
-        listener.onFailed("Reached step limit (" + MAX_STEPS + ") without completing task", history);
+        listener.onFailed("Reached step limit (" + maxSteps + ") without completing task", history);
     }
 }

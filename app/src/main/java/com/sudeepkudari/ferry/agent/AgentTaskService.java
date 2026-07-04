@@ -45,6 +45,7 @@ public class AgentTaskService extends Service {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private AgentLoop agentLoop;
     private FloatingOverlayManager overlayManager;
+    private String currentTaskId;
 
     @Nullable
     @Override
@@ -97,14 +98,15 @@ public class AgentTaskService extends Service {
         // not be hardcoded — wire this up once Portal's actual pairing mechanism is confirmed.
         PortalClient portalClient = new PortalClient(/* localAuthToken= */ "");
         LlmProvider llmProvider = LlmProviderFactory.getActiveProvider(this);
-        agentLoop = new AgentLoop(portalClient, llmProvider);
+        int maxSteps = keyStore.getMaxSteps();
+        agentLoop = new AgentLoop(portalClient, llmProvider, maxSteps);
 
         AppDatabase db = AppDatabase.getDatabase(this);
         TaskDao dao = db.taskDao();
-        String taskId = UUID.randomUUID().toString();
+        currentTaskId = UUID.randomUUID().toString();
 
         executor.execute(() -> {
-            dao.insertTask(new TaskEntity(taskId, task, System.currentTimeMillis(), "RUNNING"));
+            dao.insertTask(new TaskEntity(currentTaskId, task, System.currentTimeMillis(), "RUNNING"));
             
             agentLoop.run(task, new AgentLoop.StepListener() {
                 @Override
@@ -114,7 +116,7 @@ public class AgentTaskService extends Service {
                     broadcastLog(log);
                     
                     String summary = action.getType().name();
-                    dao.insertStep(new StepEntity(taskId, stepNumber, action.getType().name(), action.getReasoning(), summary, System.currentTimeMillis()));
+                    dao.insertStep(new StepEntity(currentTaskId, stepNumber, action.getType().name(), action.getReasoning(), summary, System.currentTimeMillis()));
                 }
 
                 @Override
@@ -123,7 +125,7 @@ public class AgentTaskService extends Service {
                     updateNotification(log);
                     broadcastLog(log);
                     
-                    dao.updateTaskStatus(taskId, "COMPLETED", System.currentTimeMillis());
+                    dao.updateTaskStatus(currentTaskId, "COMPLETED", System.currentTimeMillis());
                     stopSelf();
                 }
 
@@ -133,7 +135,7 @@ public class AgentTaskService extends Service {
                     updateNotification(log);
                     broadcastLog(log);
                     
-                    dao.updateTaskStatus(taskId, "FAILED", System.currentTimeMillis());
+                    dao.updateTaskStatus(currentTaskId, "FAILED", System.currentTimeMillis());
                     stopSelf();
                 }
             });
@@ -158,6 +160,14 @@ public class AgentTaskService extends Service {
             agentLoop.cancel();
         }
         executor.shutdownNow();
+        
+        if (currentTaskId != null) {
+            // Update the DB immediately on the main thread (or a new thread) if it was destroyed abruptly
+            new Thread(() -> {
+                AppDatabase.getDatabase(this).taskDao().updateTaskStatus(currentTaskId, "FAILED", System.currentTimeMillis());
+            }).start();
+        }
+        
         if (overlayManager != null) {
             new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> overlayManager.destroy());
         }
