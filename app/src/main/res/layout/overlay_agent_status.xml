@@ -4,11 +4,11 @@
     android:id="@+id/overlayRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="16dp"
-    app:cardBackgroundColor="#CC000000"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="8dp"
-    app:strokeColor="#4DFFFFFF"
+    android:layout_margin="12dp"
+    app:cardBackgroundColor="#F0FFFFFF"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="4dp"
+    app:strokeColor="#20000000"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -16,72 +16,78 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Header: Drag Handle, Title, Minimize, Stop -->
+        <!-- Header -->
         <LinearLayout
             android:id="@+id/headerLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="10dp">
 
-            <!-- Drag Handle Area -->
             <TextView
                 android:id="@+id/dragHandle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:layout_marginEnd="8dp"
                 android:text="⋮⋮"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textColor="#9CA3AF"
+                android:textSize="16sp" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Ferry Agent"
-                android:textColor="#FFFFFF"
+                android:text="Ferry"
+                android:textColor="#111827"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
             <ImageButton
                 android:id="@+id/btnMinimize"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:background="?selectableItemBackgroundBorderless"
-                android:src="@android:drawable/arrow_down_float"
                 android:contentDescription="Minimize"
-                app:tint="#FFFFFF" />
+                android:src="@android:drawable/arrow_down_float"
+                app:tint="#6B7280" />
 
             <ImageButton
                 android:id="@+id/btnStop"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_marginStart="8dp"
                 android:background="?selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_delete"
                 android:contentDescription="Stop Agent"
-                app:tint="#FF5252" />
+                android:src="@android:drawable/ic_delete"
+                app:tint="#DC2626" />
+
         </LinearLayout>
 
-        <!-- Body: Logs and Opacity Slider (can be hidden when minimized) -->
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="12dp"
+            android:background="#E5E7EB" />
+
+        <!-- Body -->
         <LinearLayout
             android:id="@+id/bodyLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="12dp">
+            android:paddingHorizontal="12dp"
+            android:paddingBottom="12dp"
+            android:paddingTop="8dp">
 
             <ScrollView
                 android:id="@+id/logScrollView"
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
+                android:layout_height="100dp"
                 android:layout_marginBottom="8dp"
-                android:background="#33FFFFFF"
+                android:background="#F7F8FA"
                 android:padding="8dp">
 
                 <TextView
@@ -89,9 +95,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="monospace"
-                    android:text="Starting agent..."
-                    android:textColor="#E0E0E0"
+                    android:lineSpacingMultiplier="1.3"
+                    android:text="Starting agent…"
+                    android:textColor="#374151"
                     android:textSize="11sp" />
+
             </ScrollView>
 
             <LinearLayout
@@ -104,8 +112,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Opacity"
-                    android:textColor="#B3FFFFFF"
-                    android:textSize="12sp" />
+                    android:textColor="#9CA3AF"
+                    android:textSize="11sp" />
 
                 <SeekBar
                     android:id="@+id/opacitySlider"
@@ -113,9 +121,10 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:max="100"
-                    android:progress="80"
-                    android:progressTint="#FFFFFF"
-                    android:thumbTint="#FFFFFF" />
+                    android:progress="90"
+                    android:progressTint="#4F46E5"
+                    android:thumbTint="#4F46E5" />
+
             </LinearLayout>
 
         </LinearLayout>

@@ -23,11 +23,11 @@
     </queries>
 
     <application
-        android:name=".MobileAgentApp"
+        android:name=".FerryApp"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.MobileAgent"
+        android:theme="@style/Theme.Ferry"
         android:usesCleartextTraffic="true"
         tools:targetApi="34">
 

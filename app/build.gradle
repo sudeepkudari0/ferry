@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.mobileagent'
+    namespace 'com.sudeepkudari.ferry'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.example.mobileagent"
+        applicationId "com.sudeepkudari.ferry"
         minSdk 26
         targetSdk 34
         versionCode 1
@@ -27,7 +27,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-            applicationIdSuffix ".debug"
         }
     }
 
