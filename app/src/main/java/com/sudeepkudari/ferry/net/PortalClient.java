@@ -84,11 +84,27 @@ public class PortalClient implements PortalApi {
                 repo.inputText(action.getText(), false);
                 break;
             case SWIPE:
-                // We use a basic heuristic for SWIPE if start/end x/y are not fully specified.
-                // Action format from LLM usually only gives directional hint or start x/y. 
-                // For a robust implementation, we should parse directions.
-                // Using arbitrary default swipe up for now.
                 GestureController.INSTANCE.swipe(500, 1500, 500, 500, 300);
+                break;
+            case SCROLL:
+                String dir = action.getText() != null ? action.getText().toLowerCase() : "down";
+                // To scroll DOWN, we swipe UP from bottom to top
+                if (dir.contains("up")) {
+                    GestureController.INSTANCE.swipe(500, 500, 500, 1500, 300);
+                } else if (dir.contains("left")) {
+                    GestureController.INSTANCE.swipe(200, 1000, 800, 1000, 300);
+                } else if (dir.contains("right")) {
+                    GestureController.INSTANCE.swipe(800, 1000, 200, 1000, 300);
+                } else {
+                    // Default to scroll down
+                    GestureController.INSTANCE.swipe(500, 1500, 500, 500, 300);
+                }
+                break;
+            case BACK:
+                service.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
+                break;
+            case HOME:
+                service.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_HOME);
                 break;
             case LAUNCH_APP:
                 if (action.getPackageOrDeepLink() != null) {

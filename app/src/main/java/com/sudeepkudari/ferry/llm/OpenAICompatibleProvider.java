@@ -115,7 +115,7 @@ public class OpenAICompatibleProvider implements LlmProvider {
         properties.add("action_type", actionType);
 
         properties.add("node_id", simpleStringProp("Target node id, required for TAP and TYPE_TEXT."));
-        properties.add("text", simpleStringProp("Text to type, required for TYPE_TEXT."));
+        properties.add("text", simpleStringProp("Text to type (for TYPE_TEXT) or scroll direction 'up'/'down'/'left'/'right' (for SCROLL)."));
         properties.add("x", simpleIntProp("X coordinate, required for TAP_XY and SWIPE."));
         properties.add("y", simpleIntProp("Y coordinate, required for TAP_XY and SWIPE."));
         properties.add("target", simpleStringProp("Android package name or deep link URI, required for LAUNCH_APP. Use the real package name, e.g. 'com.android.chrome' for Chrome, 'com.google.android.youtube' for YouTube, 'com.whatsapp' for WhatsApp."));

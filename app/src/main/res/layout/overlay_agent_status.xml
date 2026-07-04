@@ -5,90 +5,86 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="12dp"
-    app:cardBackgroundColor="#F0FFFFFF"
-    app:cardCornerRadius="14dp"
-    app:cardElevation="4dp"
-    app:strokeColor="#20000000"
+    app:cardBackgroundColor="#F8FFFFFF"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp"
+    app:strokeColor="#1A000000"
     app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
         android:orientation="vertical">
 
-        <!-- Header -->
+        <!-- Header (Always Visible Pill) -->
         <LinearLayout
             android:id="@+id/headerLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="10dp">
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:background="?selectableItemBackground">
 
-            <TextView
+            <!-- Drag Handle / Status Dot Container -->
+            <FrameLayout
                 android:id="@+id/dragHandle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:text="⋮⋮"
-                android:textColor="#9CA3AF"
-                android:textSize="16sp" />
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="8dp">
+
+                <ImageView
+                    android:id="@+id/statusIndicator"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/status_dot_live" />
+
+            </FrameLayout>
 
             <TextView
+                android:id="@+id/overlayTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Ferry"
-                android:textColor="#111827"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
             <ImageButton
-                android:id="@+id/btnMinimize"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:background="?selectableItemBackgroundBorderless"
-                android:contentDescription="Minimize"
-                android:src="@android:drawable/arrow_down_float"
-                app:tint="#6B7280" />
-
-            <ImageButton
                 android:id="@+id/btnStop"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginStart="8dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:background="?selectableItemBackgroundBorderless"
                 android:contentDescription="Stop Agent"
                 android:src="@android:drawable/ic_delete"
-                app:tint="#DC2626" />
+                app:tint="@color/error" />
 
         </LinearLayout>
 
-        <!-- Divider -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginHorizontal="12dp"
-            android:background="#E5E7EB" />
-
-        <!-- Body -->
+        <!-- Body (Expanded Log View) -->
         <LinearLayout
             android:id="@+id/bodyLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="12dp"
-            android:paddingBottom="12dp"
-            android:paddingTop="8dp">
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="16dp"
+            android:visibility="gone">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/divider" />
 
             <ScrollView
                 android:id="@+id/logScrollView"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:layout_marginBottom="8dp"
-                android:background="#F7F8FA"
-                android:padding="8dp">
+                android:layout_height="120dp">
 
                 <TextView
                     android:id="@+id/logText"
@@ -97,35 +93,10 @@
                     android:fontFamily="monospace"
                     android:lineSpacingMultiplier="1.3"
                     android:text="Starting agent…"
-                    android:textColor="#374151"
+                    android:textColor="@color/text_secondary"
                     android:textSize="11sp" />
 
             </ScrollView>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Opacity"
-                    android:textColor="#9CA3AF"
-                    android:textSize="11sp" />
-
-                <SeekBar
-                    android:id="@+id/opacitySlider"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:max="100"
-                    android:progress="90"
-                    android:progressTint="#4F46E5"
-                    android:thumbTint="#4F46E5" />
-
-            </LinearLayout>
 
         </LinearLayout>
 

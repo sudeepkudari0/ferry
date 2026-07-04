@@ -59,10 +59,10 @@ public class TaskHistoryAdapter extends RecyclerView.Adapter<TaskHistoryAdapter.
             promptText.setText(task.prompt);
             statusText.setText(task.status);
             
-            CharSequence timeAgo = DateUtils.getRelativeTimeSpanString(
+            CharSequence timeAgo = android.text.format.DateUtils.getRelativeTimeSpanString(
                     task.startTime,
                     System.currentTimeMillis(),
-                    DateUtils.MINUTE_IN_MILLIS
+                    android.text.format.DateUtils.MINUTE_IN_MILLIS
             );
             timeText.setText(timeAgo);
             
@@ -76,6 +76,12 @@ public class TaskHistoryAdapter extends RecyclerView.Adapter<TaskHistoryAdapter.
                 statusText.setTextColor(Color.parseColor("#D97706")); // warning
                 statusText.setBackgroundColor(Color.parseColor("#1AD97706"));
             }
+            
+            itemView.setOnClickListener(v -> {
+                android.content.Intent intent = new android.content.Intent(itemView.getContext(), TaskDetailActivity.class);
+                intent.putExtra(TaskDetailActivity.EXTRA_TASK_ID, task.id);
+                itemView.getContext().startActivity(intent);
+            });
         }
     }
 }

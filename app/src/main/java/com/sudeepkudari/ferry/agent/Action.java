@@ -16,6 +16,9 @@ public class Action {
         TAP_XY,     // fallback: raw coordinate tap when no clean node exists
         TYPE_TEXT,  // set text on a focused/targeted input node
         SWIPE,      // directional swipe/scroll
+        SCROLL,     // scroll up/down/left/right (direction in 'text' field)
+        BACK,       // trigger system back navigation
+        HOME,       // trigger system home navigation
         LAUNCH_APP, // launch an app via package name / deep link instead of simulating navigation
         WAIT,       // deliberate pause (e.g. waiting for a screen to load)
         DONE,       // task considered complete

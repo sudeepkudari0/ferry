@@ -1,24 +1,24 @@
 package com.sudeepkudari.ferry.ui;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.Build;
+import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
-import android.view.ContextThemeWrapper;
-
-import com.sudeepkudari.ferry.R;
 import com.google.android.material.card.MaterialCardView;
+import com.sudeepkudari.ferry.R;
 
 public class FloatingOverlayManager {
 
@@ -27,19 +27,19 @@ public class FloatingOverlayManager {
     private final WindowManager windowManager;
     private View overlayView;
     private WindowManager.LayoutParams params;
-    
+
     private TextView logText;
     private ScrollView logScrollView;
     private LinearLayout bodyLayout;
     private MaterialCardView overlayRoot;
-    
-    private boolean isMinimized = false;
+    private TextView overlayTitle;
+    private ImageView statusIndicator;
+    private ObjectAnimator pulseAnimator;
+
+    private boolean isExpanded = false;
     private final Runnable onStopClicked;
 
     public FloatingOverlayManager(Context context, Runnable onStopClicked) {
-        // Service contexts don't carry the Activity's Material theme, so Material
-        // components (MaterialCardView, ?selectableItemBackgroundBorderless, etc.)
-        // crash on inflate. Wrapping with ContextThemeWrapper fixes this.
         this.context = context;
         this.themedContext = new ContextThemeWrapper(context, R.style.Theme_Ferry);
         this.windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
@@ -51,25 +51,27 @@ public class FloatingOverlayManager {
 
         overlayView = LayoutInflater.from(themedContext).inflate(R.layout.overlay_agent_status, null);
 
-        int layoutFlag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O 
-                ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY 
+        int layoutFlag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
                 : WindowManager.LayoutParams.TYPE_PHONE;
 
         params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.WRAP_CONTENT, // WRAP_CONTENT so it shrinks to a pill
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 layoutFlag,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
                 PixelFormat.TRANSLUCENT
         );
         params.gravity = Gravity.TOP | Gravity.START;
-        params.x = 0;
+        params.x = 20;
         params.y = 100;
 
         initViews();
         setupDragListener();
 
         windowManager.addView(overlayView, params);
+        
+        startPulseAnimation();
     }
 
     private void initViews() {
@@ -78,42 +80,38 @@ public class FloatingOverlayManager {
         logText = overlayView.findViewById(R.id.logText);
         logScrollView = overlayView.findViewById(R.id.logScrollView);
         View headerLayout = overlayView.findViewById(R.id.headerLayout);
-        ImageButton btnMinimize = overlayView.findViewById(R.id.btnMinimize);
         ImageButton btnStop = overlayView.findViewById(R.id.btnStop);
-        SeekBar opacitySlider = overlayView.findViewById(R.id.opacitySlider);
+        overlayTitle = overlayView.findViewById(R.id.overlayTitle);
+        statusIndicator = overlayView.findViewById(R.id.statusIndicator);
 
-        // Stop button
         btnStop.setOnClickListener(v -> {
-            if (onStopClicked != null) {
-                onStopClicked.run();
-            }
+            if (onStopClicked != null) onStopClicked.run();
         });
 
-        // Minimize toggle
-        btnMinimize.setOnClickListener(v -> {
-            isMinimized = !isMinimized;
-            bodyLayout.setVisibility(isMinimized ? View.GONE : View.VISIBLE);
-            btnMinimize.setImageResource(isMinimized ? android.R.drawable.arrow_down_float : android.R.drawable.arrow_up_float);
-        });
+        // Toggle expand/collapse on tap
+        headerLayout.setOnClickListener(v -> toggleExpanded());
+    }
 
-        // Double tap header to minimize/expand
-        headerLayout.setOnClickListener(v -> btnMinimize.performClick());
+    private void toggleExpanded() {
+        isExpanded = !isExpanded;
+        bodyLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+        
+        // When expanded, take full width. When collapsed, wrap content to form a pill.
+        if (isExpanded) {
+            params.width = WindowManager.LayoutParams.MATCH_PARENT;
+            overlayRoot.setCardBackgroundColor(android.graphics.Color.parseColor("#F8FFFFFF"));
+        } else {
+            params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+            overlayRoot.setCardBackgroundColor(android.graphics.Color.parseColor("#D9FFFFFF")); // More translucent when collapsed
+        }
+        windowManager.updateViewLayout(overlayView, params);
+    }
 
-        // Opacity slider
-        opacitySlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // Map 0-100 to 0-255 alpha
-                int alpha = (int) ((progress / 100f) * 255);
-                String hexAlpha = Integer.toHexString(alpha);
-                if (hexAlpha.length() == 1) hexAlpha = "0" + hexAlpha;
-                overlayRoot.setCardBackgroundColor(Color.parseColor("#" + hexAlpha + "FFFFFF"));
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
+    private void startPulseAnimation() {
+        pulseAnimator = ObjectAnimator.ofFloat(statusIndicator, "alpha", 1f, 0.2f, 1f);
+        pulseAnimator.setDuration(1200);
+        pulseAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        pulseAnimator.start();
     }
 
     private void setupDragListener() {
@@ -123,6 +121,7 @@ public class FloatingOverlayManager {
             private int initialY;
             private float initialTouchX;
             private float initialTouchY;
+            private boolean isDragging = false;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -132,12 +131,20 @@ public class FloatingOverlayManager {
                         initialY = params.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
-                        return true;
+                        isDragging = false;
+                        return false; // Return false so onClick still fires if it's just a tap
                     case MotionEvent.ACTION_MOVE:
-                        params.x = initialX + (int) (event.getRawX() - initialTouchX);
-                        params.y = initialY + (int) (event.getRawY() - initialTouchY);
-                        windowManager.updateViewLayout(overlayView, params);
-                        return true;
+                        float diffX = event.getRawX() - initialTouchX;
+                        float diffY = event.getRawY() - initialTouchY;
+                        if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
+                            isDragging = true;
+                            params.x = initialX + (int) diffX;
+                            params.y = initialY + (int) diffY;
+                            windowManager.updateViewLayout(overlayView, params);
+                        }
+                        return isDragging;
+                    case MotionEvent.ACTION_UP:
+                        return isDragging; // If we dragged, consume the event so onClick doesn't fire
                 }
                 return false;
             }
@@ -147,21 +154,35 @@ public class FloatingOverlayManager {
     public void appendLog(String message) {
         if (overlayView == null || logText == null) return;
         
-        // Ensure we run on UI thread if called from background
         overlayView.post(() -> {
+            // Update Title if it's a step
+            if (message.startsWith("Step ")) {
+                overlayTitle.setText(message.split("->")[0].trim());
+            } else if (message.startsWith("Task complete")) {
+                overlayTitle.setText("Completed");
+                if (pulseAnimator != null) pulseAnimator.cancel();
+                statusIndicator.setAlpha(1f);
+                statusIndicator.setColorFilter(android.graphics.Color.parseColor("#059669")); // Green
+            } else if (message.startsWith("Task stopped")) {
+                overlayTitle.setText("Failed");
+                if (pulseAnimator != null) pulseAnimator.cancel();
+                statusIndicator.setAlpha(1f);
+                statusIndicator.setColorFilter(android.graphics.Color.parseColor("#DC2626")); // Red
+            }
+            
+            // Append log
             String current = logText.getText().toString();
-            // keep last ~2000 chars to avoid memory issues
             if (current.length() > 2000) {
                 current = current.substring(current.length() - 2000);
             }
             logText.setText(current + "\n" + message);
             
-            // Auto-scroll to bottom
             logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
         });
     }
 
     public void destroy() {
+        if (pulseAnimator != null) pulseAnimator.cancel();
         if (overlayView != null) {
             windowManager.removeView(overlayView);
             overlayView = null;
