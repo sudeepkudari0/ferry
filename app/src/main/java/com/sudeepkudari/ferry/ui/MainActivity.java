@@ -5,11 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MenuItem;
 import android.widget.Toast;
+import android.app.Activity;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.appcompat.widget.Toolbar;
@@ -34,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private TaskHistoryAdapter historyAdapter;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ActivityResultLauncher<Intent> speechRecognizerLauncher;
     
     private final BroadcastReceiver logReceiver = new BroadcastReceiver() {
         @Override
@@ -56,6 +60,29 @@ public class MainActivity extends AppCompatActivity {
         binding.taskHistoryRecyclerView.setAdapter(historyAdapter);
 
         binding.runButton.setOnClickListener(v -> onRunClicked());
+        
+        speechRecognizerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        List<String> results = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        if (results != null && !results.isEmpty()) {
+                            binding.taskInput.setText(results.get(0));
+                        }
+                    }
+                }
+        );
+
+        binding.taskInputLayout.setEndIconOnClickListener(v -> {
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "What would you like Ferry to do?");
+            try {
+                speechRecognizerLauncher.launch(intent);
+            } catch (Exception e) {
+                Toast.makeText(this, "Speech recognition not supported on this device", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

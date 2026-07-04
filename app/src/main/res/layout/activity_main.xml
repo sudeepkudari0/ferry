@@ -117,6 +117,7 @@
 
             <!-- Task input -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/taskInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
@@ -125,7 +126,10 @@
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
                 app:boxStrokeColor="@color/primary"
-                app:hintTextColor="@color/text_hint">
+                app:hintTextColor="@color/text_hint"
+                app:endIconMode="custom"
+                app:endIconDrawable="@android:drawable/ic_btn_speak_now"
+                app:endIconTint="@color/primary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/taskInput"
