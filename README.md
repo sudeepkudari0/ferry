@@ -2,6 +2,7 @@
 
 [![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-brightgreen.svg)](https://android.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Privacy: Zero Telemetry](https://img.shields.io/badge/Privacy-Zero_Telemetry-blue.svg)](./PRIVACY.md)
 
 Ferry is an on-device Android app that lets an AI carry out natural-language tasks by reading and acting on your screen — "open Gmail and summarize my unread messages," "find this job listing and open the application form," and similar multi-step, cross-app workflows.
 
@@ -52,9 +53,14 @@ cd ferry
 2. Install this app, open **Settings**, and enter your API key (e.g. Anthropic, OpenAI, etc).
 3. Type a task and hit **Run Task**.
 
-## Privacy / BYOK
+## Privacy & Data Security (BYOK)
 
-There is no backend server for this project. Your API key is stored encrypted on-device (Android Keystore-backed) and used only to call your chosen LLM provider's API directly from your phone. Screen content read via Portal is sent to that same provider as part of deciding each action — see [docs/privacy.md](./docs/privacy.md) for exactly what leaves the device and when.
+Ferry was built from the ground up with absolute transparency and zero compromises on privacy:
+- **Zero Telemetry**: The app contains no analytics or tracking SDKs.
+- **No Middleman Servers**: The app talks directly from your device to your configured LLM provider's API. We never see your data.
+- **Encrypted Keys**: Your API keys are secured locally using Android's hardware-backed Keystore (`EncryptedSharedPreferences`).
+
+Please carefully review our comprehensive [Privacy Policy (PRIVACY.md)](./PRIVACY.md) to understand exactly what leaves your device when you run a task.
 
 ## Contributing
 
